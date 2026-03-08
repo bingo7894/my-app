@@ -39,7 +39,9 @@ export function LoginForm() {
     <Card>
       <CardHeader>
         <CardTitle className="text-xl">Welcome back!</CardTitle>
-        <CardDescription>Login with your Github Email Account</CardDescription>
+        <CardDescription>
+          Login with your Github or Email Account
+        </CardDescription>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4">
