@@ -1,85 +1,14 @@
-"use client";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { LoginForm } from "./_components/LoginForm";
+import { redirect } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { authClient } from "@/lib/auth-client";
-import { GithubIcon, Loader } from "lucide-react";
-import { useTransition } from "react";
-import { toast } from "sonner";
-
-export default function LoginPage() {
-  const [githubPending, startGitTransition] = useTransition();
-
-  async function signInWithGithub() {
-    startGitTransition(async () => {
-      await authClient.signIn.social({
-        provider: "github",
-        callbackURL: "/",
-        fetchOptions: {
-          onSuccess: () => {
-            toast.success("Singed in with Github, you will be redirected...");
-          },
-          onError: (error) => {
-            toast.error("Internal Server Error");
-          },
-        },
-      });
-    });
+export default async function LoginPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (session) {
+    return redirect("/");
   }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Welcome back!</CardTitle>
-        <CardDescription>Login with your Github Email Account</CardDescription>
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-4">
-        <Button
-          disabled={githubPending}
-          onClick={signInWithGithub}
-          className="w-full"
-          variant="outline"
-        >
-          {githubPending ? (
-            <>
-              <Loader className="size-4 mr-2 animate-spin" />
-              <span>Loading...</span>
-            </>
-          ) : (
-            <>
-              <GithubIcon className="size-4 mr-2" />
-              Sign in with Github
-            </>
-          )}
-        </Button>
-        <div
-          className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 
-        after:z-0 after:flex after:items-center after:border-t after:border-border"
-        >
-          <span className="relative z-10 bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-
-        <div className="grid gap-3">
-          <div className="grid gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input type="email" placeholder="Exemple@mail.com"></Input>
-            </div>
-            <Button>Continue with Email</Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return <LoginForm />;
 }
