@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@arcjet/inspect": "^1.2.0",
+    "@arcjet/ip": "^1.2.0",
     "@arcjet/next": "^1.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-neon": "6.8.2",
