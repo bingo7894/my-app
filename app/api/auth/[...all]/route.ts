@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth";
-import ip from "@arcjet/ip";
 import arcjet, {
   type ArcjetDecision,
   type BotOptions,
@@ -8,7 +7,6 @@ import arcjet, {
   type SlidingWindowRateLimitOptions,
   detectBot,
   protectSignup,
-  shield,
   slidingWindow,
 } from "@arcjet/next";
 import { toNextJsHandler } from "better-auth/next-js";
@@ -21,7 +19,7 @@ const aj = arcjet({
 
 const emailOptions = {
   mode: "LIVE",
-  block: ["DISPOSABLE", "INVALID", "NO_MX_RECORDS"],
+  deny: ["DISPOSABLE", "INVALID", "NO_MX_RECORDS"],
 } satisfies EmailOptions;
 
 const botOptions = {
@@ -46,31 +44,21 @@ async function protect(req: NextRequest): Promise<ArcjetDecision> {
     headers: req.headers,
   });
 
-  let userId: string;
-  if (session?.user?.id) {
-    userId = session.user.id; // แก้ไข: ใช้ session.user.id แทน sessionStorage
-  } else {
-    userId = ip(req) || "127.0.0.1";
-  }
-
   if (req.nextUrl.pathname.startsWith("/api/auth/sign-up")) {
-    const body = await req.clone().json(); // อ่าน body ครั้งเดียว
+    const body = await req.clone().json();
 
-    // ย้ายการเช็ค body.email เข้ามาอยู่ใน Scope เดียวกัน
     if (typeof body.email === "string") {
       return aj
         .withRule(protectSignup(signupOptions))
-        .protect(req, { email: body.email, fingerprint: userId });
+        .protect(req, { email: body.email });
     } else {
       return aj
         .withRule(detectBot(botOptions))
         .withRule(slidingWindow(rateLimitOptions))
-        .protect(req, { fingerprint: userId });
+        .protect(req);
     }
   } else {
-    return aj
-      .withRule(detectBot(botOptions))
-      .protect(req, { fingerprint: userId });
+    return aj.withRule(detectBot(botOptions)).protect(req);
   }
 }
 
@@ -90,10 +78,9 @@ export const POST = async (req: NextRequest) => {
       let message: string;
 
       if (decision.reason.emailTypes.includes("INVALID")) {
-        // แก้ไข: inclides -> includes
-        message = "Email address format is invalid. Is there a typo?"; // แก้ไข: tyoi -> typo
+        message = "Email address format is invalid. Is there a typo?";
       } else if (decision.reason.emailTypes.includes("DISPOSABLE")) {
-        message = "We do not allow disposable email address.";
+        message = "We do not allow disposable email addresses.";
       } else if (decision.reason.emailTypes.includes("NO_MX_RECORDS")) {
         message =
           "Your email domain does not have an MX record. Is there a typo?";
