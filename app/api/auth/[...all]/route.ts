@@ -17,22 +17,26 @@ const aj = arcjet({
   rules: [],
 });
 
+//1. ป้องกันการสมัครด้วยอีเมลที่ไม่พึงประสงค์ในโหมดใช้งานจริง (LIVE) โดยจะบล็อก
 const emailOptions = {
   mode: "LIVE",
-  deny: ["DISPOSABLE", "INVALID", "NO_MX_RECORDS"],
+  deny: ["DISPOSABLE", "INVALID", "NO_MX_RECORDS"], //อีเมลแบบใช้แล้วทิ้ง รูปแบบอีเมลไม่ถูกต้อง โดเมนอีเมลนั้นไม่มีอยู่จริงหรือรับอีเมลไม่ได้
 } satisfies EmailOptions;
 
+//2. ป้องกันบอทเข้ามาก่อกวนระบบ
 const botOptions = {
   mode: "LIVE",
-  allow: [],
+  allow: [], //หมายถึงไม่อนุญาตให้บอทใดๆ ผ่านเข้ามาได้เลย
 } satisfies BotOptions;
 
+//3. จำกัดจำนวนการเรียก API
 const rateLimitOptions = {
   mode: "LIVE",
-  interval: "2m",
+  interval: "2m", //โดยกำหนดให้เรียกได้สูงสุด 5 ครั้ง ภายใน 2 นาที ต่อ 1 ผู้ใช้งาน
   max: 5,
 } satisfies SlidingWindowRateLimitOptions<[]>;
 
+//นำกฎทั้ง 3 ข้อด้านบนมัดรวมกันเป็นแพ็กเกจเดียว เพื่อเอาไว้ใช้สำหรับหน้า "สมัครสมาชิก" โดยเฉพาะ
 const signupOptions = {
   email: emailOptions,
   bots: botOptions,
